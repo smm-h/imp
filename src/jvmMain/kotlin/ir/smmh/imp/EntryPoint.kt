@@ -7,15 +7,15 @@ import ir.smmh.imp.statements.OneCall
 import ir.smmh.imp.statements.Return
 import ir.smmh.imp.statements.Statement
 
+val stack = Stack().apply {
+    push().apply {
+        declare(NameBinding("print", Print, false, false))
+    }
+}
+val helloWorld: Statement = OneCall(Call(Variable("print"), listOf(StringValue("Hello, world!"))))
+val program: Statement = Return(FunctionDefinition(emptyList(), FunctionBody(listOf(helloWorld))))
 
 fun main() {
-    val stack = Stack().apply {
-        push().apply {
-            declare(NameBinding("print", Print, false, false))
-        }
-    }
-    val helloworld: Statement = OneCall(Call(Print, listOf(StringValue("Hello, world!"))))
-    val program: Statement = Return(FunctionDefinition(emptyList(), FunctionBody(listOf(helloworld))))
     program.execute(stack)
     val main = stack.pop().returnedValue as Function
     main.call(emptyList())
