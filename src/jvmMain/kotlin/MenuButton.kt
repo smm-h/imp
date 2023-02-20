@@ -1,10 +1,16 @@
-sealed class MenuButton(val name: String) {
+sealed class MenuButton(
+    val name: String,
+    val enabled: Boolean,
+) {
+    class Node(
+        name: String,
+        enabled: Boolean,
+        val children: List<MenuButton>,
+    ) : MenuButton(name, enabled)
 
-    class HasSubButtons
-        (name: String, val items: List<MenuButton>) :
-        MenuButton(name)
-
-    class HasAction
-        (name: String, val action: () -> Unit) :
-        MenuButton(name)
+    class Leaf(
+        name: String,
+        enabled: Boolean,
+        val action: () -> Unit,
+    ) : MenuButton(name, enabled)
 }
