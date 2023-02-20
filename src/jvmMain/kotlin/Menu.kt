@@ -1,5 +1,3 @@
-@file:Suppress("FunctionName")
-
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -10,13 +8,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 typealias MenuStack = MutableList<MenuButton.Node>
 
 @Composable
-fun MenuButtonView(menuButton: MenuButton, menuStack: MenuStack) {
+fun showMenuButton(menuButton: MenuButton, menuStack: MenuStack) {
     val onClick = when (menuButton) {
         is MenuButton.Leaf -> menuButton.action
         is MenuButton.Node -> {
@@ -26,14 +25,22 @@ fun MenuButtonView(menuButton: MenuButton, menuStack: MenuStack) {
     Button(
         onClick = onClick,
         shape = CircleShape,
-        enabled = menuButton.enabled
+        enabled = menuButton.view.enabled
     ) {
-        Text(menuButton.name)
+        when (menuButton.view) {
+            is MenuButton.View.Text -> {
+                Text(menuButton.view.text)
+            }
+        }
     }
 }
 
 @Composable
-fun MenuView(menuStack: MenuStack) {
+fun showMenu(menuStack: MenuStack) {
+    val backButton = remember {
+        val view = MenuButton.View.Text.ConstantNameMaybeEnabled("\uD83E\uDC68") { menuStack.size > 1 }
+        MenuButton.Leaf(view) { menuStack.removeLast() }
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
@@ -41,11 +48,9 @@ fun MenuView(menuStack: MenuStack) {
             .verticalScroll(rememberScrollState())
             .horizontalScroll(rememberScrollState())
     ) {
-//        if (menuStack.size > 1) {
-        MenuButtonView(MenuButton.Leaf("Back", menuStack.size > 1) { menuStack.removeLast() }, menuStack)
-//        }
+        showMenuButton(backButton, menuStack)
         menuStack.last().children.forEach {
-            MenuButtonView(it, menuStack)
+            showMenuButton(it, menuStack)
         }
     }
 }

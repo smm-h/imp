@@ -1,5 +1,3 @@
-@file:Suppress("FunctionName")
-
 import Colors.Statement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import ir.smmh.imp.statements.*
 
 @Composable
-fun StatementView(
+fun showStatement(
     statement: ir.smmh.imp.statements.Statement,
     tabbed: Boolean,
     selectedStatement: MutableState<ir.smmh.imp.statements.Statement?>,
@@ -40,7 +38,7 @@ fun StatementView(
         if (isSelected) Statement.Background.isSelected
         else Statement.Background.isNotSelected
     Row {
-        if (tabbed) Code("    ")
+        if (tabbed) showCode("    ")
         Box(
             Modifier
                 .padding(8.dp)
@@ -51,96 +49,96 @@ fun StatementView(
             Box(Modifier.padding(if (isBlock) 2.dp else 8.dp)) {
                 when (statement) {
                     is Assertion -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        Keyword("assert ")
-                        ExpressionView(statement.expression)
-                        Keyword(";")
+                        showKeyword("assert ")
+                        showExpression(statement.expression)
+                        showKeyword(";")
                     }
 
                     is Assignment -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        Code(statement.name, color = Colors.Code.variables, bold = true)
-                        Keyword(" = ")
-                        ExpressionView(statement.expression)
-                        Keyword(";")
+                        showCode(statement.name, color = Colors.Code.variables, bold = true)
+                        showKeyword(" = ")
+                        showExpression(statement.expression)
+                        showKeyword(";")
                     }
 
                     is Block -> Column {
                         statement.list.forEach {
-                            StatementView(it, false, selectedStatement, isSelected)
+                            showStatement(it, false, selectedStatement, isSelected)
                         }
                     }
 
                     is FunctionBody -> Column {
                         statement.list.forEach {
-                            StatementView(it, false, selectedStatement, isSelected)
+                            showStatement(it, false, selectedStatement, isSelected)
                         }
                     }
 
                     is If -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Keyword("if (")
-                            ExpressionView(statement.condition)
-                            Keyword(") {")
+                            showKeyword("if (")
+                            showExpression(statement.condition)
+                            showKeyword(") {")
                         }
-                        StatementView(statement.ifTrue, true, selectedStatement, isSelected)
+                        showStatement(statement.ifTrue, true, selectedStatement, isSelected)
                         statement.ifFalse?.let {
-                            Keyword("} else {")
-                            StatementView(it, true, selectedStatement, isSelected)
+                            showKeyword("} else {")
+                            showStatement(it, true, selectedStatement, isSelected)
                         }
-                        Keyword("}")
+                        showKeyword("}")
                     }
 
                     is For -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Keyword("for (")
-                            ExpressionView(statement.variable)
-                            Keyword(" : ")
-                            ExpressionView(statement.iterable)
-                            Keyword(") {")
+                            showKeyword("for (")
+                            showExpression(statement.variable)
+                            showKeyword(" : ")
+                            showExpression(statement.iterable)
+                            showKeyword(") {")
                         }
-                        StatementView(statement.block, true, selectedStatement, isSelected)
-                        Keyword("}")
+                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showKeyword("}")
                     }
 
                     is Repeat -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Keyword("repeat (")
-                            ExpressionView(statement.times)
-                            Keyword(") {")
+                            showKeyword("repeat (")
+                            showExpression(statement.times)
+                            showKeyword(") {")
                         }
-                        StatementView(statement.block, true, selectedStatement, isSelected)
-                        Keyword("}")
+                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showKeyword("}")
                     }
 
                     is While -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Keyword("while (")
-                            ExpressionView(statement.condition)
-                            Keyword(") {")
+                            showKeyword("while (")
+                            showExpression(statement.condition)
+                            showKeyword(") {")
                         }
-                        StatementView(statement.block, true, selectedStatement, isSelected)
-                        Keyword("}")
+                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showKeyword("}")
                     }
 
                     is NameDeclaration -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        Keyword((if (statement.canBeRebound) "var" else "val") + (if (statement.canBeMutated) "mut" else "imm"))
-                        Code(" ")
-                        Code(statement.name, color = Colors.Code.variables, bold = true)
+                        showKeyword((if (statement.canBeRebound) "var" else "val") + (if (statement.canBeMutated) "mut" else "imm"))
+                        showCode(" ")
+                        showCode(statement.name, color = Colors.Code.variables, bold = true)
                         statement.initializer?.let {
-                            Keyword(" = ")
-                            ExpressionView(it)
+                            showKeyword(" = ")
+                            showExpression(it)
                         }
-                        Keyword(";")
+                        showKeyword(";")
                     }
 
                     is OneCall -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        ExpressionView(statement.call)
-                        Keyword(";")
+                        showExpression(statement.call)
+                        showKeyword(";")
                     }
 
                     is Return -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        Keyword("return ")
-                        ExpressionView(statement.expression)
-                        Keyword(";")
+                        showKeyword("return ")
+                        showExpression(statement.expression)
+                        showKeyword(";")
                     }
                 }
             }

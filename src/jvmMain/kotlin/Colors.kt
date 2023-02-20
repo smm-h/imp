@@ -1,6 +1,7 @@
 import androidx.compose.ui.graphics.Color
 
 internal object Colors {
+    val divider = Color.LightGray
     internal object Code {
         val stringLiterals =
             Color(0.10F, 0.70F, 0.40F)

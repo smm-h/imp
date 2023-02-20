@@ -1,5 +1,3 @@
-@file:Suppress("FunctionName")
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Text
@@ -14,7 +12,7 @@ import androidx.compose.ui.unit.sp
 import ir.smmh.imp.expressions.*
 
 @Composable
-fun Code(
+fun showCode(
     text: String,
     color: Color = Color.Red,
     bold: Boolean = false,
@@ -29,11 +27,11 @@ fun Code(
 )
 
 @Composable
-fun Keyword(text: String) =
-    Code(text, color = Colors.Code.keywords, bold = true)
+fun showKeyword(text: String) =
+    showCode(text, color = Colors.Code.keywords, bold = true)
 
 @Composable
-fun ExpressionView(expression: Expression) {
+fun showExpression(expression: Expression) {
     Box(
         Modifier
 //            .border(1.dp, Color.LightGray)
@@ -43,26 +41,26 @@ fun ExpressionView(expression: Expression) {
             is Call -> Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ExpressionView(expression.callable)
-                Keyword("(")
-                expression.arguments.forEach { ExpressionView(it) }
-                Keyword(")")
+                showExpression(expression.callable)
+                showKeyword("(")
+                expression.arguments.forEach { showExpression(it) }
+                showKeyword(")")
             }
 
             is Variable ->
-                Code(expression.name, color = Colors.Code.variables, bold = true)
+                showCode(expression.name, color = Colors.Code.variables, bold = true)
 
             is StringValue ->
-                Code("\"${expression.value}\"", color = Colors.Code.stringLiterals)
+                showCode("\"${expression.value}\"", color = Colors.Code.stringLiterals)
 
             is BooleanValue ->
-                Code(if (expression.value) "true" else "false", color = Colors.Code.booleanLiterals)
+                showCode(if (expression.value) "true" else "false", color = Colors.Code.booleanLiterals)
 
             is IntValue ->
-                Code(expression.value.toString(), color = Colors.Code.numberLiterals)
+                showCode(expression.value.toString(), color = Colors.Code.numberLiterals)
 
             else ->
-                Code(expression.toString())
+                showCode(expression.toString())
         }
     }
 }
