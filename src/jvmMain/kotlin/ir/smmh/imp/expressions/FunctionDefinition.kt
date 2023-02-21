@@ -4,13 +4,13 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.statements.FunctionBody
 
-data class FunctionDefinition(
-    val arguments: List<String>,
-    val body: FunctionBody,
-) : Expression {
-    private val function = Function(arguments, body)
+class FunctionDefinition : Expression {
+
+    val arguments: MutableList<Variable> = mutableListOf()
+    val body = FunctionBody()
+
     override fun evaluate(stack: Stack): Function {
-        return function
+        return Function(arguments, body)
     }
 
     override fun check(checker: Checker) {

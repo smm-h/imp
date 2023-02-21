@@ -1,6 +1,6 @@
 # IMP
 
-the i in for i
+the `i` in `for i`
 object scope: a field in an object whose context we are in
 
 lexical scope: a variable that was declared in this scope

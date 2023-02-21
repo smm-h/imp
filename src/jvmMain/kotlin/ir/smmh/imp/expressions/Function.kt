@@ -5,14 +5,17 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.statements.FunctionBody
 
 class Function(
-    val arguments: List<String>,
-    val body: FunctionBody,
+    arguments: List<Variable>,
+    body: FunctionBody,
 ) : Callable {
+
+    private val argumentNames = arguments.map(Variable::name)
+
     override fun call(input: List<Value>): Value {
         val stack = Stack()
         stack.push().apply {
-            arguments.forEachIndexed { i, name ->
-                declare(NameBinding(name, input[i], false, false))
+            argumentNames.forEachIndexed { i, name ->
+                declare(NameBinding(name, input[i], false))
             }
         }
         body.execute(stack)

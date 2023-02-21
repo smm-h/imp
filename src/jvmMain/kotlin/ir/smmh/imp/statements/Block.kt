@@ -4,15 +4,16 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Frame
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Uninitalized
+import ir.smmh.imp.or
 
 /**
  * A [Block] is a [Statement] whose execution includes pushing its own
  * [Frame] on the [Stack], executing a [list] of sub-statements in
  * order, and then popping it.
  */
-data class Block(
-    val list: List<Statement>,
-) : Statement() {
+class Block : Statement() {
+
+    val list: MutableList<Statement> = mutableListOf()
 
     override fun execute(stack: Stack) {
         val frame = stack.push()
@@ -31,5 +32,5 @@ data class Block(
         }
     }
 
-    override fun returns() = list.fold(false) { a, e -> a || e.returns() }
+    override fun returns() = list.fold<Statement, Boolean?>(false) { a, e -> a or e.returns() }
 }

@@ -1,22 +1,28 @@
 package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
+import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
 
-data class While(
-    val condition: Expression,
-    override val block: Block,
-) : Loop() {
+class While : Loop() {
+
+    var condition: Expression? = null
+
     override fun execute(stack: Stack) {
-        while ((condition.evaluate(stack) as BooleanValue).value) {
-            block.execute(stack)
+        val c = condition
+            ?: throw RuntimeError("missing condition")
+        val b = block
+
+        while ((c.evaluate(stack) as BooleanValue).value) {
+            b.execute(stack)
         }
     }
 
     override fun check(checker: Checker) {
-        condition.check(checker)
+        condition?.check(checker)
+            ?: checker.report("missing condition")
         block.check(checker)
     }
 }

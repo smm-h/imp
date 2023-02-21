@@ -11,5 +11,5 @@ import ir.smmh.imp.Stack
 sealed class Statement {
     abstract fun execute(stack: Stack)
     abstract fun check(checker: Checker)
-    abstract fun returns(): Boolean
+    abstract fun returns(): Boolean?
 }

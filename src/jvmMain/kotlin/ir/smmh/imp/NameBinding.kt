@@ -10,6 +10,5 @@ import ir.smmh.imp.expressions.Value
 data class NameBinding(
     val name: String,
     var value: Value,
-    val canBeRebound: Boolean,
-    val canBeMutated: Boolean,
+    val rebindable: Boolean,
 )

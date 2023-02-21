@@ -3,10 +3,10 @@ package ir.smmh.imp.statements
 import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Uninitalized
+import ir.smmh.imp.or
 
-data class FunctionBody(
-    val list: List<Statement>,
-) : Statement() {
+class FunctionBody : Statement() {
+    val list: MutableList<Statement> = mutableListOf()
 
     override fun execute(stack: Stack) {
         for (statement in list) {
@@ -23,5 +23,5 @@ data class FunctionBody(
         }
     }
 
-    override fun returns() = list.fold(false) { a, e -> a || e.returns() }
+    override fun returns() = list.fold<Statement, Boolean?>(false) { a, e -> a or e.returns() }
 }

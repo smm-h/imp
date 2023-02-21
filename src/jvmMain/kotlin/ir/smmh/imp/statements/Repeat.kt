@@ -1,22 +1,26 @@
 package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
+import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.IntValue
 
-data class Repeat(
-    val times: Expression,
-    override val block: Block,
-) : Loop() {
+class Repeat : Loop() {
+    var times: Expression? = null
+
     override fun execute(stack: Stack) {
-        repeat((times.evaluate(stack) as IntValue).value) {
+        val t = times
+            ?: throw RuntimeError("missing expression")
+
+        repeat((t.evaluate(stack) as IntValue).value) {
             block.execute(stack)
         }
     }
 
     override fun check(checker: Checker) {
-        times.check(checker)
+        times?.check(checker)
+            ?: checker.report("missing expression")
         block.check(checker)
     }
 }

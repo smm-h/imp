@@ -4,24 +4,32 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
+import ir.smmh.imp.expressions.Variable
 
-data class Assignment(
-    val name: String,
-    val expression: Expression,
-) : Statement() {
+class Assignment : Statement() {
+
+    var variable: Variable? = null
+    var expression: Expression? = null
+
     override fun execute(stack: Stack) {
-        val binding = stack.retrieve(name)
+        val n = variable?.name
+            ?: throw RuntimeError("missing variable")
+        val e = expression
+            ?: throw RuntimeError("missing expression")
+
+        val binding = stack.retrieve(n)
         if (binding == null) {
-            throw RuntimeError("name is not declared: $name")
-        } else if (binding.canBeRebound) {
-            binding.value = expression.evaluate(stack)
+            throw RuntimeError("name is not declared: $n")
+        } else if (binding.rebindable) {
+            binding.value = e.evaluate(stack)
         } else {
-            throw RuntimeError("name is declared as non-rebindable: $name")
+            throw RuntimeError("name is declared as non-rebindable: $n")
         }
     }
 
     override fun check(checker: Checker) {
-        expression.check(checker)
+        expression?.check(checker)
+            ?: checker.report("missing expression")
     }
 
     override fun returns() = false
