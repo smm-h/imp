@@ -29,178 +29,184 @@ enum class ViewMode(val title: String) {
 
 @Composable
 fun app(program: Statement) {
-    var viewMode by remember { mutableStateOf(2) }
-    val outputLines = remember { mutableStateListOf(welcome) }
 
-    val names = setOf(
-        NameBinding("print", object : Callable {
-            override val argumentCount: Int = 1
-            override fun call(stack: Stack, input: List<Value>): Value {
-                outputLines.add(OutputLine(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE))
-                return Void
+    val a = object : App {
+        override var viewMode by remember { mutableStateOf(2) }
+        override val outputLines = remember { mutableStateListOf(welcome) }
+
+        val names = setOf(
+            NameBinding("print", object : Callable {
+                override val argumentCount: Int = 1
+                override fun call(stack: Stack, input: List<Value>): Value {
+                    outputLines.add(OutputLine(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE))
+                    return Void
+                }
+            }, false),
+        )
+
+        fun Statement.run() {
+            val executionStack = Stack().apply { push().apply { names.forEach(::declare) } }
+            try {
+                execute(executionStack)
+            } catch (e: Stack.Error) {
+                val message = e.message ?: e.toString()
+                outputLines.add(OutputLine(message, OutputLine.Category.ERROR))
             }
-        }, false),
-    )
-
-    fun Statement.run() {
-        val executionStack = Stack().apply { push().apply { names.forEach(::declare) } }
-        try {
-            execute(executionStack)
-        } catch (e: Stack.Error) {
-            val message = e.message ?: e.toString()
-            outputLines.add(OutputLine(message, OutputLine.Category.ERROR))
         }
-    }
 
-    val selectedStatement = remember { mutableStateOf<Statement?>(null) }
+        override var selectedStatement by remember { mutableStateOf<Statement?>(null) }
 
-    val thereIsSelection = { selectedStatement.value != null }
+        val thereIsSelection = { selectedStatement != null }
 
-    val thereIsOutput = { outputLines.size > 1 }
+        val thereIsOutput = { outputLines.size > 1 }
 
-    val run =
-        remember {
-            Leaf(View.Text.ConstantNameAlwaysEnabled("Run")) {
-                program.run()
+        val run =
+            remember {
+                Leaf(View.Text.ConstantNameAlwaysEnabled("Run")) {
+                    program.run()
 //                val main = executionStack.pop().returnedValue as Function
 //                main.call(emptyList())
-            }
-        }
-    val clearOutput =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Clear Output", thereIsOutput)) {
-                outputLines.apply {
-                    clear()
-                    add(welcome)
                 }
             }
-        }
-    val changeViewMode =
-        remember {
-            val array = ViewMode.values()
-            Leaf(View.Text.VariableNameAlwaysEnabled { "View Mode ${array[viewMode].title}" }) {
-                viewMode = (viewMode + 1) % array.size
+        val clearOutput =
+            remember {
+                Leaf(View.Text.ConstantNameMaybeEnabled("Clear Output", thereIsOutput)) {
+                    outputLines.apply {
+                        clear()
+                        add(welcome)
+                    }
+                }
             }
-        }
-    val root =
-        remember {
-            Node(
-                View.Text.ConstantNameAlwaysEnabled(""), listOf(
-                    changeViewMode,
-                    run,
-                    clearOutput,
+        val changeViewMode =
+            remember {
+                val array = ViewMode.values()
+                Leaf(View.Text.VariableNameAlwaysEnabled { "View Mode ${array[viewMode].title}" }) {
+                    viewMode = (viewMode + 1) % array.size
+                }
+            }
+        val root =
+            remember {
+                Node(
+                    View.Text.ConstantNameAlwaysEnabled(""), listOf(
+                        changeViewMode,
+                        run,
+                        clearOutput,
+                    )
                 )
-            )
-        }
-
-    val menuStack: MenuStack = remember { mutableStateListOf() }
-
-    val clearSelection =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
-                selectedStatement.value = null
-                menuStack.clear()
             }
-        }
 
-    val runSelected =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Run Selected", thereIsSelection)) {
-                selectedStatement.value?.run()
-            }
-        }
+        val menuStack: MenuStack = remember { mutableStateListOf() }
 
-    val deleteSelected =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Delete", thereIsSelection)) {
-                selectedStatement.value?.run()
-            }
-        }
-
-    fun expressionMenuButton(it: KMutableProperty<Expression?>): MenuButton = TODO()
-    fun variableMenuButton(it: KMutableProperty<Variable?>): MenuButton = TODO()
-    fun blockMenuButton(it: KMutableProperty<Block?>): MenuButton = TODO()
-
-    fun statementMenu(it: Statement?): Node = Node(View.Text.ConstantNameAlwaysEnabled(""),
-        mutableListOf<MenuButton>().apply {
-            add(runSelected)
-            add(deleteSelected)
-            when (it) {
-
-                is Assertion -> {
-                    add(expressionMenuButton(it::expression))
-                }
-
-                is Assignment -> {
-                    add(variableMenuButton(it::variable))
-                    add(expressionMenuButton(it::expression))
-                }
-
-                is Block -> {
-                    TODO()
-                }
-
-                is If -> {
-                    add(expressionMenuButton(it::condition))
-                    add(statementMenu(it.ifTrue))
-                    add(statementMenu(it.ifFalse))
-                }
-
-                is For -> {
-                    add(variableMenuButton(it::variable))
-                    // TODO add(it::start)
-                    // TODO add(it::end)
-                    add(statementMenu(it.block))
-                }
-
-                is Repeat -> {
-                    add(expressionMenuButton(it::times))
-                    add(statementMenu(it.block))
-                }
-
-                is While -> {
-                    add(expressionMenuButton(it::condition))
-                    add(statementMenu(it.block))
-                }
-
-                is NameDeclaration -> {
-                    // TODO add(it::rebindable)
-                    add(variableMenuButton(it::variable))
-                    add(expressionMenuButton(it::initializer))
-                }
-
-                is OneCall -> {
-                    TODO()
-                }
-
-                is Return -> {
-                    add(expressionMenuButton(it::expression))
-                }
-
-                null -> {
+        val clearSelection =
+            remember {
+                Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
+                    selectedStatement = null
+                    menuStack.clear()
                 }
             }
-        }
-    )
+
+        val runSelected =
+            remember {
+                Leaf(View.Text.ConstantNameMaybeEnabled("Run Selected", thereIsSelection)) {
+                    selectedStatement?.run()
+                }
+            }
+
+        val deleteSelected =
+            remember {
+                Leaf(View.Text.ConstantNameMaybeEnabled("Delete", thereIsSelection)) {
+                    selectedStatement?.run()
+                }
+            }
+
+        fun expressionMenuButton(it: KMutableProperty<Expression?>): MenuButton = TODO()
+        fun variableMenuButton(it: KMutableProperty<Variable?>): MenuButton = TODO()
+        fun blockMenuButton(it: KMutableProperty<Block?>): MenuButton = TODO()
+
+        fun statementMenu(it: Statement?): Node = Node(View.Text.ConstantNameAlwaysEnabled(""),
+            mutableListOf<MenuButton>().apply {
+                add(runSelected)
+                add(deleteSelected)
+                when (it) {
+
+                    is Assertion -> {
+                        add(expressionMenuButton(it::expression))
+                    }
+
+                    is Assignment -> {
+                        add(variableMenuButton(it::variable))
+                        add(expressionMenuButton(it::expression))
+                    }
+
+                    is Block -> {
+                        TODO()
+                    }
+
+                    is If -> {
+                        add(expressionMenuButton(it::condition))
+                        add(statementMenu(it.ifTrue))
+                        add(statementMenu(it.ifFalse))
+                    }
+
+                    is For -> {
+                        add(variableMenuButton(it::variable))
+                        // TODO add(it::start)
+                        // TODO add(it::end)
+                        add(statementMenu(it.block))
+                    }
+
+                    is Repeat -> {
+                        add(expressionMenuButton(it::times))
+                        add(statementMenu(it.block))
+                    }
+
+                    is While -> {
+                        add(expressionMenuButton(it::condition))
+                        add(statementMenu(it.block))
+                    }
+
+                    is NameDeclaration -> {
+                        // TODO add(it::rebindable)
+                        add(variableMenuButton(it::variable))
+                        add(expressionMenuButton(it::initializer))
+                    }
+
+                    is OneCall -> {
+                        TODO()
+                    }
+
+                    is Return -> {
+                        add(expressionMenuButton(it::expression))
+                    }
+
+                    null -> {
+                    }
+                }
+            }
+        )
+    }
 
     MaterialTheme {
         @Composable
         fun code() {
-            showStatement(program, false, selectedStatement, false)
+            showStatement(program, false, a)
         }
 
         @Composable
         fun output() {
             Column(Modifier.padding(8.dp)) {
-                outputLines.forEach {
+                a.outputLines.forEach {
                     showCode(it.toString(), it.category.color)
                 }
             }
         }
 
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+
+            Divider(color = Colors.divider)
+
             Box(Modifier.weight(1F)) {
-                when (ViewMode.values()[viewMode]) {
+                when (ViewMode.values()[a.viewMode]) {
                     ViewMode.CODE_ONLY -> {
                         Box(
                             Modifier
@@ -269,7 +275,7 @@ fun app(program: Statement) {
 
             Column(Modifier.wrapContentHeight()) {
                 Divider(color = Colors.divider)
-                showMenu(root, menuStack)
+                showMenu(a.root, a.menuStack)
             }
         }
     }

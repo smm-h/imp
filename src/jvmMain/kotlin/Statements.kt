@@ -1,4 +1,3 @@
-import Colors.Statement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,27 +14,28 @@ import ir.smmh.imp.statements.*
 
 @Composable
 fun showStatement(
-    statement: ir.smmh.imp.statements.Statement,
+    statement: Statement,
     tabbed: Boolean,
-    selectedStatement: MutableState<ir.smmh.imp.statements.Statement?>,
-    parentIsSelected: Boolean,
+    app: App,
 ) {
+    //val parentIsSelected = app.selectedStatement == statement.parent
     val shape = RoundedCornerShape(8.dp)
-    val isSelected = selectedStatement.value == statement
+    val isSelected = app.selectedStatement == statement
     val isBlock = statement is Block
     val onClick = if (isSelected) {
-        { selectedStatement.value = null }
+        { app.selectedStatement = null }
     } else {
-        { selectedStatement.value = statement }
+        { app.selectedStatement = statement }
     }
     val borderColor =
-        if (isSelected) Statement.Border.isSelected
-        else if (parentIsSelected) Statement.Border.parentIsSelected
-        else if (isBlock) Statement.Border.isNotSelected_isBlock
-        else Statement.Border.isNotSelected_isNotBlock
+        if (isSelected) Colors.Statement.Border.isSelected
+//        else if (parentIsSelected) Colors.Statement.Border.parentIsSelected
+        else if (isBlock) Colors.Statement.Border.isNotSelected_isBlock
+        else Colors.Statement.Border.isNotSelected_isNotBlock
     val backColor =
-        if (isSelected) Statement.Background.isSelected
-        else Statement.Background.isNotSelected
+//        if (isSelected) Colors.Statement.Background.isSelected
+//        else
+        Colors.Statement.Background.isNotSelected
     Row {
         if (tabbed) showCode("    ")
         Box(
@@ -64,7 +63,7 @@ fun showStatement(
 
                     is Block -> Column {
                         statement.list.forEach {
-                            showStatement(it, false, selectedStatement, isSelected)
+                            showStatement(it, false, app)
                         }
                     }
 
@@ -74,10 +73,10 @@ fun showStatement(
                             showExpression(statement.condition)
                             showKeyword(") {")
                         }
-                        showStatement(statement.ifTrue, true, selectedStatement, isSelected)
+                        showStatement(statement.ifTrue, true, app)
                         if (statement.ifFalse.list.isNotEmpty()) {
                             showKeyword("} else {")
-                            showStatement(statement.ifFalse, true, selectedStatement, isSelected)
+                            showStatement(statement.ifFalse, true, app)
                         }
                         showKeyword("}")
                     }
@@ -92,7 +91,7 @@ fun showStatement(
                             showExpression(statement.end)
                             showKeyword(") {")
                         }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showStatement(statement.block, true, app)
                         showKeyword("}")
                     }
 
@@ -102,7 +101,7 @@ fun showStatement(
                             showExpression(statement.times)
                             showKeyword(") {")
                         }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showStatement(statement.block, true, app)
                         showKeyword("}")
                     }
 
@@ -112,7 +111,7 @@ fun showStatement(
                             showExpression(statement.condition)
                             showKeyword(") {")
                         }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
+                        showStatement(statement.block, true, app)
                         showKeyword("}")
                     }
 
