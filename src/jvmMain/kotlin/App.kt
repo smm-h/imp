@@ -1,9 +1,12 @@
-import androidx.compose.runtime.MutableState
 import ir.smmh.imp.statements.Statement
 
 interface App {
-    var viewMode: Int
-    val outputLines: MutableList<OutputLine>
+    val viewMode: ViewMode
+    fun nextViewMode()
+
     var selectedStatement: Statement?
-    //parentIsSelected: Boolean
+
+    fun print(text: String, category: OutputLine.Category)
+    fun clearOutput()
+    fun hasOutput(): Boolean
 }

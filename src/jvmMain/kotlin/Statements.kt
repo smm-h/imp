@@ -18,9 +18,9 @@ fun showStatement(
     tabbed: Boolean,
     app: App,
 ) {
-    //val parentIsSelected = app.selectedStatement == statement.parent
     val shape = RoundedCornerShape(8.dp)
     val isSelected = app.selectedStatement == statement
+    //val isParentSelected = app.selectedStatement == statement.parent
     val isBlock = statement is Block
     val onClick = if (isSelected) {
         { app.selectedStatement = null }
@@ -29,7 +29,7 @@ fun showStatement(
     }
     val borderColor =
         if (isSelected) Colors.Statement.Border.isSelected
-//        else if (parentIsSelected) Colors.Statement.Border.parentIsSelected
+//        else if (isParentSelected) Colors.Statement.Border.isParentSelected
         else if (isBlock) Colors.Statement.Border.isNotSelected_isBlock
         else Colors.Statement.Border.isNotSelected_isNotBlock
     val backColor =

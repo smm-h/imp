@@ -22,7 +22,7 @@ internal object Colors {
                 Color(0.95F, 0.95F, 0.95F)
             val isSelected =
                 Color(0.60F, 0.80F, 0.95F)
-            val parentIsSelected =
+            val isParentSelected =
                 Color(0.80F, 0.90F, 0.95F)
             val isNotSelected_isNotBlock =
                 Color.White
