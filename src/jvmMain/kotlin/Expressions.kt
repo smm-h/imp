@@ -31,7 +31,7 @@ fun showKeyword(text: String) =
     showCode(text, color = Colors.Code.keywords, bold = true)
 
 @Composable
-fun showExpression(expression: Expression) {
+fun showExpression(expression: Expression?) {
     Box(
         Modifier
 //            .border(1.dp, Color.LightGray)
@@ -58,6 +58,9 @@ fun showExpression(expression: Expression) {
 
             is IntValue ->
                 showCode(expression.value.toString(), color = Colors.Code.numberLiterals)
+
+            null ->
+                showCode("TODO", color = Color.Blue, italic = true)
 
             else ->
                 showCode(expression.toString())

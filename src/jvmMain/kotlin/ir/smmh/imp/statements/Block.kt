@@ -4,7 +4,7 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Frame
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Uninitalized
-import ir.smmh.imp.or
+import or
 
 /**
  * A [Block] is a [Statement] whose execution includes pushing its own

@@ -8,18 +8,18 @@ fun print(text: String) =
     print(StringValue(text))
 
 fun print(expression: Expression) =
-    OneCall(Call(Variable("print"), listOf(expression)))
+    OneCall(Call().apply { callable = Variable("print"); arguments.add(expression) })
 
 fun block(vararg statements: Statement) =
-    Block(statements.asList())
+    Block().apply { statements.forEach { list.add(it) } }
 
 val program = block(
-//        print("START"),
-//        NameDeclaration("x", true, false, IntValue(5)),
-//        NameDeclaration("y", true, false, null),
-//        Assignment("y", StringValue("FIRST")),
-//        Assignment("y", StringValue("LAST")),
-//        print(Variable("y")),
-//        print("END"),
+//    print("Hello, world!"),
+//    NameDeclaration("x", true, false, IntValue(5)),
+//    NameDeclaration("y", true, false, null),
+//    Assignment("y", StringValue("FIRST")),
+//    Assignment("y", StringValue("LAST")),
+//    print(Variable("y")),
+//    print("END"),
     If(BooleanValue(true), block(print("T")), block(print("F")))
 )

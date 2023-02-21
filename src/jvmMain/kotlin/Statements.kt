@@ -23,7 +23,7 @@ fun showStatement(
 ) {
     val shape = RoundedCornerShape(8.dp)
     val isSelected = selectedStatement.value == statement
-    val isBlock = statement is Block || statement is FunctionBody
+    val isBlock = statement is Block
     val onClick = if (isSelected) {
         { selectedStatement.value = null }
     } else {
@@ -55,19 +55,13 @@ fun showStatement(
                     }
 
                     is Assignment -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showCode(statement.name, color = Colors.Code.variables, bold = true)
+                        showExpression(statement.variable)
                         showKeyword(" = ")
                         showExpression(statement.expression)
                         showKeyword(";")
                     }
 
                     is Block -> Column {
-                        statement.list.forEach {
-                            showStatement(it, false, selectedStatement, isSelected)
-                        }
-                    }
-
-                    is FunctionBody -> Column {
                         statement.list.forEach {
                             showStatement(it, false, selectedStatement, isSelected)
                         }
@@ -120,9 +114,9 @@ fun showStatement(
                     }
 
                     is NameDeclaration -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showKeyword((if (statement.canBeRebound) "var" else "val") + (if (statement.canBeMutated) "mut" else "imm"))
+                        showKeyword(if (statement.rebindable) "var" else "val")
                         showCode(" ")
-                        showCode(statement.name, color = Colors.Code.variables, bold = true)
+                        showExpression(statement.variable)
                         statement.initializer?.let {
                             showKeyword(" = ")
                             showExpression(it)

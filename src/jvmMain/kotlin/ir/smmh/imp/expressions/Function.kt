@@ -2,14 +2,21 @@ package ir.smmh.imp.expressions
 
 import ir.smmh.imp.NameBinding
 import ir.smmh.imp.Stack
-import ir.smmh.imp.statements.FunctionBody
+import ir.smmh.imp.statements.Block
+import ir.smmh.imp.statements.Statement
 
 class Function(
     arguments: List<Variable>,
-    body: FunctionBody,
+    block: Block,
 ) : Callable {
 
     private val argumentNames = arguments.map(Variable::name)
+    private val body: Array<Statement>
+
+    init {
+        val list = block.list
+        body = Array(list.size, list::get)
+    }
 
     override fun call(input: List<Value>): Value {
         val stack = Stack()
@@ -18,7 +25,9 @@ class Function(
                 declare(NameBinding(name, input[i], false))
             }
         }
-        body.execute(stack)
+        for (it in body) {
+            it.execute(stack)
+        }
         return stack.pop().returnedValue
     }
 }

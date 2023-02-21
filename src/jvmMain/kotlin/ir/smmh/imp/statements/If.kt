@@ -4,6 +4,7 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
+import or
 
 data class If(
     val condition: Expression,
@@ -23,5 +24,8 @@ data class If(
         ifFalse?.check(checker)
     }
 
-    override fun returns() = ifTrue.returns() || (ifFalse?.returns() ?: false)
+    override fun returns(): Boolean? {
+        val f = ifFalse
+        return ifTrue.returns() or (if (f == null) false else f.returns())
+    }
 }
