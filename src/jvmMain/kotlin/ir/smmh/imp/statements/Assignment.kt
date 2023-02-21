@@ -1,7 +1,6 @@
 package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.Variable
@@ -13,17 +12,17 @@ class Assignment : Statement() {
 
     override fun execute(stack: Stack) {
         val n = variable?.name
-            ?: throw RuntimeError("missing variable")
+            ?: stack.report("missing variable")
         val e = expression
-            ?: throw RuntimeError("missing expression")
+            ?: stack.report("missing expression")
 
         val binding = stack.retrieve(n)
         if (binding == null) {
-            throw RuntimeError("name is not declared: $n")
+            stack.report("name is not declared: $n")
         } else if (binding.rebindable) {
             binding.value = e.evaluate(stack)
         } else {
-            throw RuntimeError("name is declared as non-rebindable: $n")
+            stack.report("name is declared as non-rebindable: $n")
         }
     }
 

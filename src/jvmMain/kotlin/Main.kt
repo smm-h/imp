@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ir.smmh.imp.NameBinding
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Callable
 import ir.smmh.imp.expressions.StringValue
@@ -47,7 +46,7 @@ fun app(program: Statement) {
         val executionStack = Stack().apply { push().apply { names.forEach(::declare) } }
         try {
             program.execute(executionStack)
-        } catch (e: RuntimeError) {
+        } catch (e: Stack.Error) {
             val message = e.message ?: e.toString()
             outputLines.add(OutputLine(message, OutputLine.Category.ERROR))
         }

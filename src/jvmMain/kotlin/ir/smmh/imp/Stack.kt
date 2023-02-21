@@ -30,7 +30,14 @@ class Stack : Namespace {
         if (retrieve(name) == null) {
             top().declare(nameBinding)
         } else {
-            throw RuntimeError("name is already declared: $name")
+            report("name is already declared: $name")
         }
+    }
+
+    class Error(message: String) :
+        kotlin.Exception(message)
+
+    fun report(error: String): Nothing {
+        throw Error(error)
     }
 }

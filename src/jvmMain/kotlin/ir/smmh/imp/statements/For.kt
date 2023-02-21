@@ -2,7 +2,6 @@ package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
 import ir.smmh.imp.NameBinding
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.Uninitalized
@@ -16,9 +15,9 @@ class For : Loop() {
 
     override fun execute(stack: Stack) {
         val name = variable?.name
-            ?: throw RuntimeError("missing variable")
+            ?: stack.report("missing variable")
         val i = iterable
-            ?: throw RuntimeError("missing iterable")
+            ?: stack.report("missing iterable")
 
         val nameBinding =
             NameBinding(name, Uninitalized, false)

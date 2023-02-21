@@ -1,7 +1,6 @@
 package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.IntValue
@@ -11,7 +10,7 @@ class Repeat : Loop() {
 
     override fun execute(stack: Stack) {
         val t = times
-            ?: throw RuntimeError("missing expression")
+            ?: stack.report("missing expression")
 
         repeat((t.evaluate(stack) as IntValue).value) {
             block.execute(stack)

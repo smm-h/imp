@@ -1,7 +1,6 @@
 package ir.smmh.imp.expressions
 
 import ir.smmh.imp.Checker
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 
 class Call : Expression {
@@ -11,11 +10,11 @@ class Call : Expression {
 
     override fun evaluate(stack: Stack): Value {
         val c = callable
-            ?: throw RuntimeError("missing callable")
+            ?: stack.report("missing callable")
 
         val input = arguments.map { it.evaluate(stack) }
         val output = (c.evaluate(stack) as Callable).call(input)
-        if (output == Uninitalized) throw RuntimeError("no value was returned")
+        if (output == Uninitalized) stack.report("no value was returned")
         return output
     }
 

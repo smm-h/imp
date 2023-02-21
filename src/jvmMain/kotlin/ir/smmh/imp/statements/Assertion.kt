@@ -1,7 +1,6 @@
 package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
-import ir.smmh.imp.RuntimeError
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
@@ -12,10 +11,10 @@ class Assertion : Statement() {
 
     override fun execute(stack: Stack) {
         val e = expression
-            ?: throw RuntimeError("missing expression")
+            ?: stack.report("missing expression")
 
         if (!(e.evaluate(stack) as BooleanValue).value) {
-            throw RuntimeError("assertion failed")
+            stack.report("assertion failed")
         }
     }
 
