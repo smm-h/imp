@@ -5,7 +5,7 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.Variable
 
-class Assignment : Statement() {
+class Assignment(override val parent: Statement) : Statement() {
 
     var variable: Variable? = null
     var expression: Expression? = null

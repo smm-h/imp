@@ -13,11 +13,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ir.smmh.imp.NameBinding
 import ir.smmh.imp.Stack
-import ir.smmh.imp.expressions.Callable
-import ir.smmh.imp.expressions.StringValue
-import ir.smmh.imp.expressions.Value
-import ir.smmh.imp.expressions.Void
-import ir.smmh.imp.statements.Statement
+import ir.smmh.imp.expressions.*
+import ir.smmh.imp.statements.*
+import kotlin.reflect.KMutableProperty
 
 val welcome = OutputLine("WELCOME TO IMP (VERSION ALPHA)", OutputLine.Category.INFO)
 
@@ -42,41 +40,28 @@ fun app(program: Statement) {
         }, false),
     )
 
-    fun run(program: Statement) {
+    fun Statement.run() {
         val executionStack = Stack().apply { push().apply { names.forEach(::declare) } }
         try {
-            program.execute(executionStack)
+            execute(executionStack)
         } catch (e: Stack.Error) {
             val message = e.message ?: e.toString()
             outputLines.add(OutputLine(message, OutputLine.Category.ERROR))
         }
-//        val main = executionStack.pop().returnedValue as Function
-//        main.call(emptyList())
     }
 
     val selectedStatement = remember { mutableStateOf<Statement?>(null) }
 
     val thereIsSelection = { selectedStatement.value != null }
+
     val thereIsOutput = { outputLines.size > 1 }
 
     val run =
         remember {
             Leaf(View.Text.ConstantNameAlwaysEnabled("Run")) {
-                run(program)
-            }
-        }
-    val runSelected =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Run Selected", thereIsSelection)) {
-                selectedStatement.value?.let {
-                    run(it)
-                }
-            }
-        }
-    val clearSelection =
-        remember {
-            Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
-                selectedStatement.value = null
+                program.run()
+//                val main = executionStack.pop().returnedValue as Function
+//                main.call(emptyList())
             }
         }
     val clearOutput =
@@ -101,15 +86,103 @@ fun app(program: Statement) {
                 View.Text.ConstantNameAlwaysEnabled(""), listOf(
                     changeViewMode,
                     run,
-                    runSelected,
-                    clearSelection,
                     clearOutput,
                 )
             )
         }
 
-    val menuStack: MenuStack = remember { mutableStateListOf(root) }
+    val menuStack: MenuStack = remember { mutableStateListOf() }
 
+    val clearSelection =
+        remember {
+            Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
+                selectedStatement.value = null
+                menuStack.clear()
+            }
+        }
+
+    val runSelected =
+        remember {
+            Leaf(View.Text.ConstantNameMaybeEnabled("Run Selected", thereIsSelection)) {
+                selectedStatement.value?.run()
+            }
+        }
+
+    val deleteSelected =
+        remember {
+            Leaf(View.Text.ConstantNameMaybeEnabled("Delete", thereIsSelection)) {
+                selectedStatement.value?.run()
+            }
+        }
+
+    fun expressionMenuButton(it: KMutableProperty<Expression?>): MenuButton = TODO()
+    fun variableMenuButton(it: KMutableProperty<Variable?>): MenuButton = TODO()
+    fun blockMenuButton(it: KMutableProperty<Block?>): MenuButton = TODO()
+
+    fun statementMenu(it: Statement?): Node = Node(View.Text.ConstantNameAlwaysEnabled(""),
+        mutableListOf<MenuButton>().apply {
+            add(runSelected)
+            add(deleteSelected)
+            when (it) {
+
+                is Program -> {
+                    TODO()
+                }
+
+                is Assertion -> {
+                    add(expressionMenuButton(it::expression))
+                }
+
+                is Assignment -> {
+                    add(variableMenuButton(it::variable))
+                    add(expressionMenuButton(it::expression))
+                }
+
+                is Block -> {
+                    TODO()
+                }
+
+                is If -> {
+                    add(expressionMenuButton(it::condition))
+                    add(statementMenu(it.ifTrue))
+                    add(statementMenu(it.ifFalse))
+                }
+
+                is For -> {
+                    add(variableMenuButton(it::variable))
+                    add(expressionMenuButton(it::iterable))
+                    add(statementMenu(it.block))
+                }
+
+                is Repeat -> {
+                    add(expressionMenuButton(it::times))
+                    add(statementMenu(it.block))
+                }
+
+                is While -> {
+                    add(expressionMenuButton(it::condition))
+                    add(statementMenu(it.block))
+                }
+
+                is NameDeclaration -> {
+                    // TODO add(it.rebindable)
+                    add(variableMenuButton(it::variable))
+                    add(expressionMenuButton(it::initializer))
+                }
+
+                is OneCall -> {
+                    TODO()
+                }
+
+                is Return -> {
+                    add(expressionMenuButton(it::expression))
+                }
+
+                null -> {
+                }
+            }
+        }
+    )
     MaterialTheme {
         @Composable
         fun code() {
@@ -118,83 +191,86 @@ fun app(program: Statement) {
 
         @Composable
         fun output() {
-            outputLines.forEach {
-                showCode(it.toString(), it.category.color)
+            Box(Modifier.padding(8.dp)) {
+                outputLines.forEach {
+                    showCode(it.toString(), it.category.color)
+                }
             }
         }
 
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
 
-            Column {
-                showMenu(menuStack)
-                Divider(color = Colors.divider)
+            Box(Modifier.weight(1F)) {
+                when (ViewMode.values()[viewMode]) {
+                    ViewMode.CODE_ONLY -> {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .horizontalScroll(rememberScrollState())
+                                .padding(8.dp)
+                        ) { code() }
+                    }
+
+                    ViewMode.OUTPUT_ONLY -> {
+                        Column(
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .horizontalScroll(rememberScrollState())
+                                .padding(8.dp)
+                        ) { output() }
+                    }
+
+                    ViewMode.SIDE_BY_SIDE -> {
+                        Row(Modifier.fillMaxSize()) {
+                            Box(
+                                Modifier
+                                    .weight(1F)
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(8.dp)
+                            ) { code() }
+                            Box(Modifier.width(1.dp).background(Colors.divider).fillMaxHeight())
+                            Column(
+                                Modifier
+                                    .weight(1F)
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(8.dp)
+                            ) { output() }
+                        }
+                    }
+
+                    ViewMode.STACKED -> {
+                        Column {
+                            Box(
+                                Modifier
+                                    .weight(1F)
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(8.dp)
+                            ) { code() }
+                            Box(Modifier.height(1.dp).background(Colors.divider).fillMaxWidth())
+                            Column(
+                                Modifier
+                                    .weight(1F)
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(8.dp)
+                            ) { output() }
+                        }
+                    }
+                }
             }
-            when (ViewMode.values()[viewMode]) {
-                ViewMode.CODE_ONLY -> {
-                    Box(
-                        Modifier
-                            .weight(1F)
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .horizontalScroll(rememberScrollState())
-                            .padding(8.dp)
-                    ) { code() }
-                }
 
-                ViewMode.OUTPUT_ONLY -> {
-                    Column(
-                        Modifier
-                            .weight(1F)
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .horizontalScroll(rememberScrollState())
-                            .padding(16.dp)
-                    ) { output() }
-                }
-
-                ViewMode.SIDE_BY_SIDE -> {
-                    Row(Modifier.fillMaxSize()) {
-                        Box(
-                            Modifier
-                                .weight(1F)
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                                .horizontalScroll(rememberScrollState())
-                                .padding(8.dp)
-                        ) { code() }
-                        Box(Modifier.width(1.dp).background(Colors.divider).fillMaxHeight())
-                        Column(
-                            Modifier
-                                .weight(1F)
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                                .horizontalScroll(rememberScrollState())
-                                .padding(16.dp)
-                        ) { output() }
-                    }
-                }
-
-                ViewMode.STACKED -> {
-                    Column {
-                        Box(
-                            Modifier
-                                .weight(1F)
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                                .horizontalScroll(rememberScrollState())
-                                .padding(8.dp)
-                        ) { code() }
-                        Box(Modifier.height(1.dp).background(Colors.divider).fillMaxWidth())
-                        Column(
-                            Modifier
-                                .weight(1F)
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                                .horizontalScroll(rememberScrollState())
-                                .padding(16.dp)
-                        ) { output() }
-                    }
-                }
+            Column(Modifier.wrapContentHeight()) {
+                Divider(color = Colors.divider)
+                showMenu(root, menuStack)
             }
         }
     }

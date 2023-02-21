@@ -8,7 +8,7 @@ import ir.smmh.imp.expressions.Uninitalized
 import ir.smmh.imp.expressions.Value
 import ir.smmh.imp.expressions.Variable
 
-class For : Loop() {
+class For(parent: Statement) : Loop(parent) {
 
     var variable: Variable? = null
     var iterable: Expression? = null

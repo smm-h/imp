@@ -6,26 +6,29 @@ import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
 import or
 
-data class If(
-    val condition: Expression,
-    val ifTrue: Block,
-    val ifFalse: Block?,
-) : Statement() {
+class If(override val parent: Statement) : Statement() {
+
+    var condition: Expression? = null
+    val ifTrue = Block(parent)
+    val ifFalse = Block(parent)
+
     override fun execute(stack: Stack) {
-        if ((condition.evaluate(stack) as BooleanValue).value)
+        val c = condition
+            ?: stack.report("missing condition")
+
+        if ((c.evaluate(stack) as BooleanValue).value)
             ifTrue.execute(stack)
         else
-            ifFalse?.execute(stack)
+            ifFalse.execute(stack)
     }
 
     override fun check(checker: Checker) {
-        condition.check(checker)
+        condition?.check(checker)
+            ?: checker.report("missing condition")
         ifTrue.check(checker)
-        ifFalse?.check(checker)
+        ifFalse.check(checker)
     }
 
-    override fun returns(): Boolean? {
-        val f = ifFalse
-        return ifTrue.returns() or (if (f == null) false else f.returns())
-    }
+    override fun returns(): Boolean? =
+        ifTrue.returns() or ifFalse.returns()
 }

@@ -11,9 +11,9 @@ import or
  * [Frame] on the [Stack], executing a [list] of sub-statements in
  * order, and then popping it.
  */
-class Block : Statement() {
+class Block(override val parent: Statement) : Statement() {
 
-    val list: MutableList<Statement> = mutableListOf()
+    val list: MutableList<Statement> = mutableListOf() // mutableStateListOf()
 
     override fun execute(stack: Stack) {
         val frame = stack.push()

@@ -4,8 +4,10 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 
-class Return : Statement() {
+class Return(override val parent: Statement) : Statement() {
+
     var expression: Expression? = null
+
     override fun execute(stack: Stack) {
         stack.top().returnedValue = expression?.evaluate(stack)
             ?: stack.report("missing expression")

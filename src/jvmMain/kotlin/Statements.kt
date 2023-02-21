@@ -21,118 +21,126 @@ fun showStatement(
     selectedStatement: MutableState<ir.smmh.imp.statements.Statement?>,
     parentIsSelected: Boolean,
 ) {
-    val shape = RoundedCornerShape(8.dp)
-    val isSelected = selectedStatement.value == statement
-    val isBlock = statement is Block
-    val onClick = if (isSelected) {
-        { selectedStatement.value = null }
-    } else {
-        { selectedStatement.value = statement }
-    }
-    val borderColor =
-        if (isSelected) Statement.Border.isSelected
-        else if (parentIsSelected) Statement.Border.parentIsSelected
-        else if (isBlock) Statement.Border.isNotSelected_isBlock
-        else Statement.Border.isNotSelected_isNotBlock
-    val backColor =
-        if (isSelected) Statement.Background.isSelected
-        else Statement.Background.isNotSelected
-    Row {
-        if (tabbed) showCode("    ")
-        Box(
-            Modifier
-                .padding(8.dp)
-                .border(1.dp, borderColor, shape)
-                .background(backColor, shape)
-                .clickable(onClick = onClick)
-        ) {
-            Box(Modifier.padding(if (isBlock) 2.dp else 8.dp)) {
-                when (statement) {
-                    is Assertion -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showKeyword("assert ")
-                        showExpression(statement.expression)
-                        showKeyword(";")
-                    }
+    if (statement is Program)
+        showStatement(statement.block, false, selectedStatement, parentIsSelected)
+    else {
+        val shape = RoundedCornerShape(8.dp)
+        val isSelected = selectedStatement.value == statement
+        val isBlock = statement is Block
+        val onClick = if (isSelected) {
+            { selectedStatement.value = null }
+        } else {
+            { selectedStatement.value = statement }
+        }
+        val borderColor =
+            if (isSelected) Statement.Border.isSelected
+            else if (parentIsSelected) Statement.Border.parentIsSelected
+            else if (isBlock) Statement.Border.isNotSelected_isBlock
+            else Statement.Border.isNotSelected_isNotBlock
+        val backColor =
+            if (isSelected) Statement.Background.isSelected
+            else Statement.Background.isNotSelected
+        Row {
+            if (tabbed) showCode("    ")
+            Box(
+                Modifier
+                    .padding(8.dp)
+                    .border(1.dp, borderColor, shape)
+                    .background(backColor, shape)
+                    .clickable(onClick = onClick)
+            ) {
+                Box(Modifier.padding(if (isBlock) 2.dp else 8.dp)) {
+                    @Suppress("KotlinConstantConditions")
+                    when (statement) {
 
-                    is Assignment -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showExpression(statement.variable)
-                        showKeyword(" = ")
-                        showExpression(statement.expression)
-                        showKeyword(";")
-                    }
+                        is Program -> Unit
 
-                    is Block -> Column {
-                        statement.list.forEach {
-                            showStatement(it, false, selectedStatement, isSelected)
+                        is Assertion -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            showKeyword("assert ")
+                            showExpression(statement.expression)
+                            showKeyword(";")
                         }
-                    }
 
-                    is If -> Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            showKeyword("if (")
-                            showExpression(statement.condition)
-                            showKeyword(") {")
-                        }
-                        showStatement(statement.ifTrue, true, selectedStatement, isSelected)
-                        statement.ifFalse?.let {
-                            showKeyword("} else {")
-                            showStatement(it, true, selectedStatement, isSelected)
-                        }
-                        showKeyword("}")
-                    }
-
-                    is For -> Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            showKeyword("for (")
+                        is Assignment -> Row(verticalAlignment = Alignment.CenterVertically) {
                             showExpression(statement.variable)
-                            showKeyword(" : ")
-                            showExpression(statement.iterable)
-                            showKeyword(") {")
-                        }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
-                        showKeyword("}")
-                    }
-
-                    is Repeat -> Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            showKeyword("repeat (")
-                            showExpression(statement.times)
-                            showKeyword(") {")
-                        }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
-                        showKeyword("}")
-                    }
-
-                    is While -> Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            showKeyword("while (")
-                            showExpression(statement.condition)
-                            showKeyword(") {")
-                        }
-                        showStatement(statement.block, true, selectedStatement, isSelected)
-                        showKeyword("}")
-                    }
-
-                    is NameDeclaration -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showKeyword(if (statement.rebindable) "var" else "val")
-                        showCode(" ")
-                        showExpression(statement.variable)
-                        statement.initializer?.let {
                             showKeyword(" = ")
-                            showExpression(it)
+                            showExpression(statement.expression)
+                            showKeyword(";")
                         }
-                        showKeyword(";")
-                    }
 
-                    is OneCall -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showExpression(statement.call)
-                        showKeyword(";")
-                    }
+                        is Block -> Column {
+                            statement.list.forEach {
+                                showStatement(it, false, selectedStatement, isSelected)
+                            }
+                        }
 
-                    is Return -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showKeyword("return ")
-                        showExpression(statement.expression)
-                        showKeyword(";")
+                        is If -> Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                showKeyword("if (")
+                                showExpression(statement.condition)
+                                showKeyword(") {")
+                            }
+                            showStatement(statement.ifTrue, true, selectedStatement, isSelected)
+                            if (statement.ifFalse.list.isNotEmpty()) {
+                                showKeyword("} else {")
+                                showStatement(statement.ifFalse, true, selectedStatement, isSelected)
+                            }
+                            showKeyword("}")
+                        }
+
+                        is For -> Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                showKeyword("for (")
+                                showExpression(statement.variable)
+                                showKeyword(" : ")
+                                showExpression(statement.iterable)
+                                showKeyword(") {")
+                            }
+                            showStatement(statement.block, true, selectedStatement, isSelected)
+                            showKeyword("}")
+                        }
+
+                        is Repeat -> Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                showKeyword("repeat (")
+                                showExpression(statement.times)
+                                showKeyword(") {")
+                            }
+                            showStatement(statement.block, true, selectedStatement, isSelected)
+                            showKeyword("}")
+                        }
+
+                        is While -> Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                showKeyword("while (")
+                                showExpression(statement.condition)
+                                showKeyword(") {")
+                            }
+                            showStatement(statement.block, true, selectedStatement, isSelected)
+                            showKeyword("}")
+                        }
+
+                        is NameDeclaration -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            showKeyword(if (statement.rebindable) "var" else "val")
+                            showCode(" ")
+                            showExpression(statement.variable)
+                            statement.initializer?.let {
+                                showKeyword(" = ")
+                                showExpression(it)
+                            }
+                            showKeyword(";")
+                        }
+
+                        is OneCall -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            showExpression(statement.call)
+                            showKeyword(";")
+                        }
+
+                        is Return -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            showKeyword("return ")
+                            showExpression(statement.expression)
+                            showKeyword(";")
+                        }
                     }
                 }
             }

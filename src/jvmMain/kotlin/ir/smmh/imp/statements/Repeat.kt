@@ -5,7 +5,8 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.IntValue
 
-class Repeat : Loop() {
+class Repeat(parent: Statement) : Loop(parent) {
+
     var times: Expression? = null
 
     override fun execute(stack: Stack) {

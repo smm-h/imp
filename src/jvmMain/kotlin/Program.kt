@@ -1,19 +1,17 @@
-import ir.smmh.imp.expressions.*
-import ir.smmh.imp.statements.Block
-import ir.smmh.imp.statements.If
-import ir.smmh.imp.statements.OneCall
-import ir.smmh.imp.statements.Statement
+import ProgramHelpers.IF
+import ProgramHelpers.PROGRAM
+import ProgramHelpers.TRUE
+import ProgramHelpers.PRINT
 
-fun print(text: String) =
-    print(StringValue(text))
 
-fun print(expression: Expression) =
-    OneCall(Call().apply { callable = Variable("print"); arguments.add(expression) })
+val program = PROGRAM {
+    IF(TRUE, {
+        PRINT("T")
+    }, {
+        PRINT("F")
+    })
+}
 
-fun block(vararg statements: Statement) =
-    Block().apply { statements.forEach { list.add(it) } }
-
-val program = block(
 //    print("Hello, world!"),
 //    NameDeclaration("x", true, false, IntValue(5)),
 //    NameDeclaration("y", true, false, null),
@@ -21,5 +19,4 @@ val program = block(
 //    Assignment("y", StringValue("LAST")),
 //    print(Variable("y")),
 //    print("END"),
-    If(BooleanValue(true), block(print("T")), block(print("F")))
-)
+//

@@ -5,7 +5,7 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
 
-class Assertion : Statement() {
+class Assertion(override val parent: Statement) : Statement() {
 
     var expression: Expression? = null
 

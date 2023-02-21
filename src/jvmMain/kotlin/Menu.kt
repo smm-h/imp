@@ -36,7 +36,7 @@ fun showMenuButton(menuButton: MenuButton, menuStack: MenuStack) {
 }
 
 @Composable
-fun showMenu(menuStack: MenuStack) {
+fun showMenu(root: MenuButton.Node, menuStack: MenuStack) {
     val backButton = remember {
         val view = MenuButton.View.Text.ConstantNameMaybeEnabled("\uD83E\uDC68") { menuStack.size > 1 }
         MenuButton.Leaf(view) { menuStack.removeLast() }
@@ -49,7 +49,7 @@ fun showMenu(menuStack: MenuStack) {
             .horizontalScroll(rememberScrollState())
     ) {
         showMenuButton(backButton, menuStack)
-        menuStack.last().children.forEach {
+        (menuStack.lastOrNull() ?: root).children.forEach {
             showMenuButton(it, menuStack)
         }
     }

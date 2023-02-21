@@ -7,7 +7,7 @@ import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.Uninitalized
 import ir.smmh.imp.expressions.Variable
 
-class NameDeclaration : Statement() {
+class NameDeclaration(override val parent: Statement) : Statement() {
 
     var variable: Variable? = null
     var rebindable: Boolean = false
@@ -16,6 +16,7 @@ class NameDeclaration : Statement() {
     override fun execute(stack: Stack) {
         val name = variable?.name
             ?: stack.report("missing variable")
+
         val value = initializer?.evaluate(stack) ?: Uninitalized
         stack.declare(NameBinding(name, value, rebindable))
     }

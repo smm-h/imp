@@ -5,7 +5,7 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.BooleanValue
 import ir.smmh.imp.expressions.Expression
 
-class While : Loop() {
+class While(parent: Statement) : Loop(parent) {
 
     var condition: Expression? = null
 
