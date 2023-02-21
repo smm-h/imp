@@ -56,7 +56,7 @@ fun showExpression(expression: Expression?) {
             is BooleanValue ->
                 showCode(if (expression.value) "true" else "false", color = Colors.Code.booleanLiterals)
 
-            is IntValue ->
+            is DoubleValue ->
                 showCode(expression.value.toString(), color = Colors.Code.numberLiterals)
 
             null ->

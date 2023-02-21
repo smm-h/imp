@@ -2,7 +2,7 @@ package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
-import ir.smmh.imp.expressions.BooleanValue
+import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 
 class Assertion(override val parent: Statement) : Statement() {
@@ -13,7 +13,7 @@ class Assertion(override val parent: Statement) : Statement() {
         val e = expression
             ?: stack.report("missing expression")
 
-        if (!(e.evaluate(stack) as BooleanValue).value) {
+        if (!stack.evaluateTo<Boolean>(e.evaluate(stack))) {
             stack.report("assertion failed")
         }
     }

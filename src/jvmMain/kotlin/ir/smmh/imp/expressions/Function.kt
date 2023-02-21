@@ -10,6 +10,8 @@ class Function(
     block: Block,
 ) : Callable {
 
+    override val argumentCount: Int = arguments.size
+
     private val argumentNames = arguments.map(Variable::name)
     private val body: Array<Statement>
 
@@ -18,16 +20,16 @@ class Function(
         body = Array(list.size, list::get)
     }
 
-    override fun call(input: List<Value>): Value {
-        val stack = Stack()
-        stack.push().apply {
+    override fun call(stack: Stack, input: List<Value>): Value {
+        val newStack = Stack()
+        newStack.push().apply {
             argumentNames.forEachIndexed { i, name ->
                 declare(NameBinding(name, input[i], false))
             }
         }
         for (it in body) {
-            it.execute(stack)
+            it.execute(newStack)
         }
-        return stack.pop().returnedValue
+        return newStack.pop().returnedValue
     }
 }

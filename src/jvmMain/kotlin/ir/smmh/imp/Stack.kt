@@ -1,5 +1,7 @@
 package ir.smmh.imp
 
+import ir.smmh.imp.expressions.*
+
 class Stack : Namespace {
     private val stack = ArrayDeque<Frame>()
 
@@ -39,5 +41,22 @@ class Stack : Namespace {
 
     fun report(error: String): Nothing {
         throw Error(error)
+    }
+
+    companion object {
+        inline fun <reified T> Stack.evaluateTo(expression: Expression): T {
+            val v = expression.evaluate(this)
+            try {
+                @Suppress("IMPLICIT_CAST_TO_ANY")
+                return when (T::class) {
+                    Boolean::class -> (v as BooleanValue).value
+                    Double::class -> (v as DoubleValue).value
+                    String::class -> (v as StringValue).value
+                    else -> v
+                } as T
+            } catch (_: ClassCastException) {
+                report("expecting Int; found $v")
+            }
+        }
     }
 }

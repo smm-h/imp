@@ -2,7 +2,7 @@ package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
-import ir.smmh.imp.expressions.BooleanValue
+import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 
 class While(parent: Statement) : Loop(parent) {
@@ -14,7 +14,7 @@ class While(parent: Statement) : Loop(parent) {
             ?: stack.report("missing condition")
         val b = block
 
-        while ((c.evaluate(stack) as BooleanValue).value) {
+        while (stack.evaluateTo(c)) {
             b.execute(stack)
         }
     }

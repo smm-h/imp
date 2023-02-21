@@ -2,7 +2,7 @@ package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
-import ir.smmh.imp.expressions.BooleanValue
+import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 import or
 
@@ -16,7 +16,7 @@ class If(override val parent: Statement) : Statement() {
         val c = condition
             ?: stack.report("missing condition")
 
-        if ((c.evaluate(stack) as BooleanValue).value)
+        if (stack.evaluateTo(c))
             ifTrue.execute(stack)
         else
             ifFalse.execute(stack)

@@ -2,8 +2,8 @@ package ir.smmh.imp.statements
 
 import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
+import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
-import ir.smmh.imp.expressions.IntValue
 
 class Repeat(parent: Statement) : Loop(parent) {
 
@@ -13,7 +13,7 @@ class Repeat(parent: Statement) : Loop(parent) {
         val t = times
             ?: stack.report("missing expression")
 
-        repeat((t.evaluate(stack) as IntValue).value) {
+        repeat(stack.evaluateTo<Double>(t).toInt()) {
             block.execute(stack)
         }
     }

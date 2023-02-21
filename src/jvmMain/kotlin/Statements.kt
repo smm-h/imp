@@ -91,9 +91,11 @@ fun showStatement(
                         is For -> Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 showKeyword("for (")
+                                showExpression(statement.start)
+                                showKeyword(" <= ")
                                 showExpression(statement.variable)
-                                showKeyword(" : ")
-                                showExpression(statement.iterable)
+                                showKeyword(" < ")
+                                showExpression(statement.end)
                                 showKeyword(") {")
                             }
                             showStatement(statement.block, true, selectedStatement, isSelected)

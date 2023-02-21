@@ -13,6 +13,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import ir.smmh.imp.NameBinding
 import ir.smmh.imp.Stack
+import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.*
 import ir.smmh.imp.statements.*
 import kotlin.reflect.KMutableProperty
@@ -33,8 +34,9 @@ fun app(program: Statement) {
 
     val names = setOf(
         NameBinding("print", object : Callable {
-            override fun call(input: List<Value>): Value {
-                outputLines.add(0, OutputLine((input.first() as StringValue).value, OutputLine.Category.MESSAGE))
+            override val argumentCount: Int = 1
+            override fun call(stack: Stack, input: List<Value>): Value {
+                outputLines.add(OutputLine(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE))
                 return Void
             }
         }, false),
@@ -150,7 +152,8 @@ fun app(program: Statement) {
 
                 is For -> {
                     add(variableMenuButton(it::variable))
-                    add(expressionMenuButton(it::iterable))
+                    // TODO add(it::start)
+                    // TODO add(it::end)
                     add(statementMenu(it.block))
                 }
 
@@ -165,7 +168,7 @@ fun app(program: Statement) {
                 }
 
                 is NameDeclaration -> {
-                    // TODO add(it.rebindable)
+                    // TODO add(it::rebindable)
                     add(variableMenuButton(it::variable))
                     add(expressionMenuButton(it::initializer))
                 }
@@ -183,6 +186,7 @@ fun app(program: Statement) {
             }
         }
     )
+
     MaterialTheme {
         @Composable
         fun code() {
@@ -191,7 +195,7 @@ fun app(program: Statement) {
 
         @Composable
         fun output() {
-            Box(Modifier.padding(8.dp)) {
+            Column(Modifier.padding(8.dp)) {
                 outputLines.forEach {
                     showCode(it.toString(), it.category.color)
                 }
@@ -199,7 +203,6 @@ fun app(program: Statement) {
         }
 
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
-
             Box(Modifier.weight(1F)) {
                 when (ViewMode.values()[viewMode]) {
                     ViewMode.CODE_ONLY -> {
@@ -213,7 +216,7 @@ fun app(program: Statement) {
                     }
 
                     ViewMode.OUTPUT_ONLY -> {
-                        Column(
+                        Box(
                             Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
@@ -233,7 +236,7 @@ fun app(program: Statement) {
                                     .padding(8.dp)
                             ) { code() }
                             Box(Modifier.width(1.dp).background(Colors.divider).fillMaxHeight())
-                            Column(
+                            Box(
                                 Modifier
                                     .weight(1F)
                                     .fillMaxSize()
@@ -255,7 +258,7 @@ fun app(program: Statement) {
                                     .padding(8.dp)
                             ) { code() }
                             Box(Modifier.height(1.dp).background(Colors.divider).fillMaxWidth())
-                            Column(
+                            Box(
                                 Modifier
                                     .weight(1F)
                                     .fillMaxSize()
