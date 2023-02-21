@@ -9,7 +9,7 @@ import ir.smmh.imp.Stack
  * [Wikipedia](https://en.wikipedia.org/wiki/Statement_(computer_science))
  */
 sealed class Statement {
-    abstract val parent: Statement
+    abstract val parent: Block?
     abstract fun execute(stack: Stack)
     abstract fun check(checker: Checker)
     abstract fun returns(): Boolean?

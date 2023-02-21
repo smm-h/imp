@@ -5,7 +5,7 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 
-class Repeat(parent: Statement) : Loop(parent) {
+class Repeat(parent: Block) : Loop(parent) {
 
     var times: Expression? = null
 

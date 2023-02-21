@@ -4,7 +4,7 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Expression
 
-class Return(override val parent: Statement) : Statement() {
+class Return(override val parent: Block) : Statement() {
 
     var expression: Expression? = null
 

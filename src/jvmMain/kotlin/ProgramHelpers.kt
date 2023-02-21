@@ -33,7 +33,7 @@ object ProgramHelpers {
         })
 
     fun PROGRAM(applyToBlock: Block.() -> Unit) =
-        Program().apply { block.apply(applyToBlock) }
+        Block(null).apply(applyToBlock)
 
     val TRUE = BooleanValue(true)
     val FALSE = BooleanValue(false)

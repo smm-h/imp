@@ -6,7 +6,7 @@ import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 import or
 
-class If(override val parent: Statement) : Statement() {
+class If(override val parent: Block) : Statement() {
 
     var condition: Expression? = null
     val ifTrue = Block(parent)

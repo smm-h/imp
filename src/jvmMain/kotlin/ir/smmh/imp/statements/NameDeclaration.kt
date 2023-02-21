@@ -7,7 +7,7 @@ import ir.smmh.imp.expressions.Expression
 import ir.smmh.imp.expressions.Uninitalized
 import ir.smmh.imp.expressions.Variable
 
-class NameDeclaration(override val parent: Statement) : Statement() {
+class NameDeclaration(override val parent: Block) : Statement() {
 
     var variable: Variable? = null
     var rebindable: Boolean = false

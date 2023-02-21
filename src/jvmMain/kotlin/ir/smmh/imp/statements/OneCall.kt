@@ -4,7 +4,7 @@ import ir.smmh.imp.Checker
 import ir.smmh.imp.Stack
 import ir.smmh.imp.expressions.Call
 
-class OneCall(override val parent: Statement) : Statement() {
+class OneCall(override val parent: Block) : Statement() {
 
     var call: Call? = null
 

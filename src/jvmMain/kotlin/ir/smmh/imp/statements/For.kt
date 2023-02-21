@@ -10,7 +10,7 @@ import ir.smmh.imp.expressions.Uninitalized
 import ir.smmh.imp.expressions.Variable
 import kotlin.math.ceil
 
-class For(parent: Statement) : Loop(parent) {
+class For(parent: Block) : Loop(parent) {
 
     var variable: Variable? = null
     var start: Expression? = null

@@ -5,7 +5,7 @@ import ir.smmh.imp.Stack
 import ir.smmh.imp.Stack.Companion.evaluateTo
 import ir.smmh.imp.expressions.Expression
 
-class While(parent: Statement) : Loop(parent) {
+class While(parent: Block) : Loop(parent) {
 
     var condition: Expression? = null
 

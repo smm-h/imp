@@ -127,10 +127,6 @@ fun app(program: Statement) {
             add(deleteSelected)
             when (it) {
 
-                is Program -> {
-                    TODO()
-                }
-
                 is Assertion -> {
                     add(expressionMenuButton(it::expression))
                 }
