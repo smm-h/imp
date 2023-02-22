@@ -18,34 +18,35 @@ import ir.smmh.imp.expressions.*
 import ir.smmh.imp.statements.*
 import kotlin.reflect.KMutableProperty
 
-val welcome = OutputLine("WELCOME TO IMP (VERSION ALPHA)", OutputLine.Category.INFO)
 
 fun main() = application {
     val viewModes = ViewMode.values()
     val app = remember {
         object : App {
 
-            var viewModeIndex by mutableStateOf(2)
+            var viewModeIndex by mutableStateOf(0)
+            var preferredDual = 2
 
             override val viewMode: ViewMode
                 get() = viewModes[viewModeIndex]
 
             override fun nextViewMode() {
                 viewModeIndex = (viewModeIndex + 1) % viewModes.size
+                if (viewMode.isDual) preferredDual = viewModeIndex
             }
 
-            val outputLines = mutableStateListOf(welcome)
+            val outputList = mutableStateListOf<Output>()
 
             override fun clearOutput() {
-                outputLines.clear()
-                outputLines.add(welcome)
+                outputList.clear()
+                viewModeIndex = 0
             }
 
-            override fun print(text: String, category: OutputLine.Category) {
-                outputLines.add(OutputLine(text, category))
+            override fun print(output: Output) {
+                outputList.add(output)
             }
 
-            override fun hasOutput() = outputLines.size > 1
+            override fun hasOutput() = outputList.size > 0
 
             val names = setOf(
                 NameBinding("print", object : Callable {
@@ -62,18 +63,22 @@ fun main() = application {
                 try {
                     execute(executionStack)
                 } catch (e: Stack.Error) {
-                    val message = e.message ?: e.toString()
-                    outputLines.add(OutputLine(message, OutputLine.Category.ERROR))
+                    print(e.message ?: e.toString(), OutputLine.Category.ERROR)
                 }
             }
 
             override var selectedStatement by mutableStateOf<Statement?>(null)
+                private set
 
             val thereIsSelection = { selectedStatement != null }
 
             val run =
                 Leaf(View.Text.ConstantNameAlwaysEnabled("Run")) {
+                    print(Output.LineBreak)
+                    print("STARTED RUNNING", OutputLine.Category.INFO)
                     program.run()
+                    print("FINISHED RUNNING", OutputLine.Category.INFO)
+                    if (viewModeIndex == 0) viewModeIndex = preferredDual
 //                    val main = executionStack.pop().returnedValue as Function
 //                    main.call(emptyList())
                 }
@@ -82,20 +87,24 @@ fun main() = application {
                 Leaf(View.Text.ConstantNameMaybeEnabled("Clear Output", ::hasOutput), ::clearOutput)
 
             val changeViewMode =
-                Leaf(
-                    View.Text.VariableNameAlwaysEnabled { "View Mode ${viewModes[viewModeIndex].title}" },
-                    ::nextViewMode
-                )
-            val root =
-                Node(
-                    View.Text.ConstantNameAlwaysEnabled(""), listOf(
-                        changeViewMode,
-                        run,
-                        clearOutput,
-                    )
-                )
+                Leaf(View.Text.VariableNameAlwaysEnabled { "View Mode ${viewMode.title}" }, ::nextViewMode)
 
-            val menuStack: MenuStack = mutableStateListOf()
+            val menuStack = mutableStateListOf<Node>()
+
+            override val menu: Node
+                get() = menuStack.lastOrNull() ?: root
+
+            override fun goToMenu(menu: Node, keepStack: Boolean) {
+                if (!keepStack) menuStack.clear()
+                menuStack.add(menu)
+            }
+
+            override fun goBack() {
+                menuStack.removeLast()
+            }
+
+            override fun canGoBack(): Boolean =
+                menuStack.size > 0
 
             val clearSelection =
                 Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
@@ -112,6 +121,20 @@ fun main() = application {
                 Leaf(View.Text.ConstantNameMaybeEnabled("Delete", thereIsSelection)) {
                     selectedStatement?.run()
                 }
+
+            override fun select(statement: Statement, keepStack: Boolean) {
+                selectedStatement = statement
+                goToMenu(statementMenu(statement), keepStack)
+            }
+
+            val root =
+                Node(
+                    View.Text.ConstantNameAlwaysEnabled(""), listOf(
+                        changeViewMode,
+                        run,
+                        clearOutput,
+                    )
+                )
 
             fun expressionMenuButton(it: KMutableProperty<Expression?>): MenuButton = TODO()
             fun variableMenuButton(it: KMutableProperty<Variable?>): MenuButton = TODO()
@@ -133,11 +156,11 @@ fun main() = application {
                         }
 
                         is Block -> {
-                            TODO()
+                            // TODO
                         }
 
                         is If -> {
-                            add(expressionMenuButton(it::condition))
+                            // add(expressionMenuButton(it::condition))
                             add(statementMenu(it.ifTrue))
                             add(statementMenu(it.ifFalse))
                         }
@@ -166,7 +189,7 @@ fun main() = application {
                         }
 
                         is OneCall -> {
-                            TODO()
+                            // TODO
                         }
 
                         is Return -> {
@@ -181,6 +204,8 @@ fun main() = application {
         }
     }
 
+    app.print("IMP STARTED", OutputLine.Category.INFO)
+
     Window(onCloseRequest = ::exitApplication) {
         MaterialTheme {
             @Composable
@@ -191,8 +216,11 @@ fun main() = application {
             @Composable
             fun output() {
                 Column(Modifier.padding(8.dp)) {
-                    app.outputLines.forEach {
-                        showCode(it.toString(), it.category.color)
+                    app.outputList.forEach {
+                        when (it) {
+                            Output.LineBreak -> showCode("")
+                            is OutputLine -> showCode(it.toString(), it.category.color)
+                        }
                     }
                 }
             }
@@ -271,7 +299,7 @@ fun main() = application {
 
                 Column(Modifier.wrapContentHeight()) {
                     Divider(color = Colors.divider)
-                    showMenu(app.root, app.menuStack)
+                    showMenu(app)
                 }
             }
         }

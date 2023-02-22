@@ -1,3 +1,4 @@
+import MenuButton.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -12,14 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-typealias MenuStack = MutableList<MenuButton.Node>
 
 @Composable
-fun showMenuButton(menuButton: MenuButton, menuStack: MenuStack) {
+fun showMenuButton(menuButton: MenuButton, app: App) {
     val onClick = when (menuButton) {
-        is MenuButton.Leaf -> menuButton.action
-        is MenuButton.Node -> {
-            { menuStack.add(menuButton); Unit }
+        is Leaf -> menuButton.action
+        is Node -> {
+            { app.goToMenu(menuButton, true) }
         }
     }
     Button(
@@ -28,7 +28,7 @@ fun showMenuButton(menuButton: MenuButton, menuStack: MenuStack) {
         enabled = menuButton.view.enabled
     ) {
         when (menuButton.view) {
-            is MenuButton.View.Text -> {
+            is View.Text -> {
                 Text(menuButton.view.text)
             }
         }
@@ -36,10 +36,9 @@ fun showMenuButton(menuButton: MenuButton, menuStack: MenuStack) {
 }
 
 @Composable
-fun showMenu(root: MenuButton.Node, menuStack: MenuStack) {
+fun showMenu(app: App) {
     val backButton = remember {
-        val view = MenuButton.View.Text.ConstantNameMaybeEnabled("\uD83E\uDC68") { menuStack.size > 1 }
-        MenuButton.Leaf(view) { menuStack.removeLast() }
+        Leaf(View.Text.ConstantNameMaybeEnabled("\uD83E\uDC68", app::canGoBack), app::goBack)
     }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -48,9 +47,9 @@ fun showMenu(root: MenuButton.Node, menuStack: MenuStack) {
             .verticalScroll(rememberScrollState())
             .horizontalScroll(rememberScrollState())
     ) {
-        showMenuButton(backButton, menuStack)
-        (menuStack.lastOrNull() ?: root).children.forEach {
-            showMenuButton(it, menuStack)
+        showMenuButton(backButton, app)
+        app.menu.children.forEach {
+            showMenuButton(it, app)
         }
     }
 }

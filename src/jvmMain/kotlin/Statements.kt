@@ -22,11 +22,6 @@ fun showStatement(
     val isSelected = app.selectedStatement == statement
     //val isParentSelected = app.selectedStatement == statement.parent
     val isBlock = statement is Block
-    val onClick = if (isSelected) {
-        { app.selectedStatement = null }
-    } else {
-        { app.selectedStatement = statement }
-    }
     val borderColor =
         if (isSelected) Colors.Statement.Border.isSelected
 //        else if (isParentSelected) Colors.Statement.Border.isParentSelected
@@ -43,7 +38,7 @@ fun showStatement(
                 .padding(8.dp)
                 .border(1.dp, borderColor, shape)
                 .background(backColor, shape)
-                .clickable(onClick = onClick)
+                .clickable { app.select(statement, false) }
         ) {
             Box(Modifier.padding(if (isBlock) 2.dp else 8.dp)) {
                 when (statement) {
