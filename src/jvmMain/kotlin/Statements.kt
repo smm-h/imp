@@ -1,4 +1,3 @@
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,24 +19,20 @@ fun showStatement(
 ) {
     val shape = RoundedCornerShape(8.dp)
     val isSelected = app.selectedStatement == statement
-    //val isParentSelected = app.selectedStatement == statement.parent
     val isBlock = statement is Block
+    val borderWidth =
+        if (isSelected) 3.dp
+        else 1.dp
     val borderColor =
         if (isSelected) Colors.Statement.Border.isSelected
-//        else if (isParentSelected) Colors.Statement.Border.isParentSelected
-        else if (isBlock) Colors.Statement.Border.isNotSelected_isBlock
-        else Colors.Statement.Border.isNotSelected_isNotBlock
-    val backColor =
-//        if (isSelected) Colors.Statement.Background.isSelected
-//        else
-        Colors.Statement.Background.isNotSelected
+        else if (isBlock) Colors.Statement.Border.isBlock
+        else Colors.Statement.Border.isNeither
     Row {
         if (tabbed) showCode("    ")
         Box(
             Modifier
                 .padding(8.dp)
-                .border(1.dp, borderColor, shape)
-                .background(backColor, shape)
+                .border(borderWidth, borderColor, shape)
                 .clickable { app.select(statement, false) }
         ) {
             Box(Modifier.padding(if (isBlock) 2.dp else 8.dp)) {
@@ -45,14 +40,14 @@ fun showStatement(
 
                     is Assertion -> Row(verticalAlignment = Alignment.CenterVertically) {
                         showKeyword("assert ")
-                        showExpression(statement.expression)
+                        showExpression(statement.expression, app)
                         showKeyword(";")
                     }
 
                     is Assignment -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showExpression(statement.variable)
+                        showExpression(statement.variable, app)
                         showKeyword(" = ")
-                        showExpression(statement.expression)
+                        showExpression(statement.expression, app)
                         showKeyword(";")
                     }
 
@@ -65,8 +60,8 @@ fun showStatement(
                     is If -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             showKeyword("if (")
-                            showExpression(statement.condition)
-                            showKeyword(") {")
+                            showExpression(statement.condition, app)
+                            showKeyword(") then {")
                         }
                         showStatement(statement.ifTrue, true, app)
                         if (statement.ifFalse.list.isNotEmpty()) {
@@ -79,11 +74,11 @@ fun showStatement(
                     is For -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             showKeyword("for (")
-                            showExpression(statement.start)
+                            showExpression(statement.start, app)
                             showKeyword(" <= ")
-                            showExpression(statement.variable)
+                            showExpression(statement.variable, app)
                             showKeyword(" < ")
-                            showExpression(statement.end)
+                            showExpression(statement.end, app)
                             showKeyword(") {")
                         }
                         showStatement(statement.block, true, app)
@@ -93,7 +88,7 @@ fun showStatement(
                     is Repeat -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             showKeyword("repeat (")
-                            showExpression(statement.times)
+                            showExpression(statement.times, app)
                             showKeyword(") {")
                         }
                         showStatement(statement.block, true, app)
@@ -103,7 +98,7 @@ fun showStatement(
                     is While -> Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             showKeyword("while (")
-                            showExpression(statement.condition)
+                            showExpression(statement.condition, app)
                             showKeyword(") {")
                         }
                         showStatement(statement.block, true, app)
@@ -113,22 +108,22 @@ fun showStatement(
                     is NameDeclaration -> Row(verticalAlignment = Alignment.CenterVertically) {
                         showKeyword(if (statement.rebindable) "var" else "val")
                         showCode(" ")
-                        showExpression(statement.variable)
+                        showExpression(statement.variable, app)
                         statement.initializer?.let {
                             showKeyword(" = ")
-                            showExpression(it)
+                            showExpression(it, app)
                         }
                         showKeyword(";")
                     }
 
                     is OneCall -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        showExpression(statement.call)
+                        showExpression(statement.call, app)
                         showKeyword(";")
                     }
 
                     is Return -> Row(verticalAlignment = Alignment.CenterVertically) {
                         showKeyword("return ")
-                        showExpression(statement.expression)
+                        showExpression(statement.expression, app)
                         showKeyword(";")
                     }
                 }

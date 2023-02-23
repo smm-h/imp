@@ -1,4 +1,3 @@
-import MenuButton.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -16,10 +15,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun showMenuButton(menuButton: MenuButton, app: App) {
-    val onClick = when (menuButton) {
-        is Leaf -> menuButton.action
-        is Node -> {
-            { app.goToMenu(menuButton, true) }
+    val onClick = when (val action = menuButton.action) {
+        is MenuButton.Action.Simple -> action.onClick
+        is MenuButton.Action.HasChildren -> {
+            {
+                action.onClick?.invoke()
+                app.goToMenu(action, true)
+            }
         }
     }
     Button(
@@ -28,7 +30,7 @@ fun showMenuButton(menuButton: MenuButton, app: App) {
         enabled = menuButton.view.enabled
     ) {
         when (menuButton.view) {
-            is View.Text -> {
+            is MenuButton.View.Text -> {
                 Text(menuButton.view.text)
             }
         }
@@ -38,7 +40,10 @@ fun showMenuButton(menuButton: MenuButton, app: App) {
 @Composable
 fun showMenu(app: App) {
     val backButton = remember {
-        Leaf(View.Text.ConstantNameMaybeEnabled("\uD83E\uDC68", app::canGoBack), app::goBack)
+        MenuButton(
+            MenuButton.View.Text.ConstantTextMaybeEnabled("\uD83E\uDC68", app::canGoBack),
+            MenuButton.Action.Simple(app::goBack),
+        )
     }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),

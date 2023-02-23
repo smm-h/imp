@@ -1,4 +1,3 @@
-import MenuButton.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -23,9 +22,10 @@ fun main() = application {
     val viewModes = ViewMode.values()
     val app = remember {
         object : App {
+            override val program = Programs.e1
 
-            var viewModeIndex by mutableStateOf(0)
             var preferredDual = 2
+            var viewModeIndex by mutableStateOf(preferredDual)
 
             override val viewMode: ViewMode
                 get() = viewModes[viewModeIndex]
@@ -52,7 +52,14 @@ fun main() = application {
                 NameBinding("print", object : Callable {
                     override val argumentCount: Int = 1
                     override fun call(stack: Stack, input: List<Value>): Value {
-                        print(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE)
+                        printLine(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE)
+                        return Void
+                    }
+                }, false),
+                NameBinding("T", object : Callable {
+                    override val argumentCount: Int = 1
+                    override fun call(stack: Stack, input: List<Value>): Value {
+                        printLine(stack.evaluateTo(input.first()), OutputLine.Category.MESSAGE)
                         return Void
                     }
                 }, false),
@@ -63,7 +70,7 @@ fun main() = application {
                 try {
                     execute(executionStack)
                 } catch (e: Stack.Error) {
-                    print(e.message ?: e.toString(), OutputLine.Category.ERROR)
+                    printLine(e.message ?: e.toString(), OutputLine.Category.ERROR)
                 }
             }
 
@@ -72,29 +79,35 @@ fun main() = application {
 
             val thereIsSelection = { selectedStatement != null }
 
-            val run =
-                Leaf(View.Text.ConstantNameAlwaysEnabled("Run")) {
-                    print(Output.LineBreak)
-                    print("STARTED RUNNING", OutputLine.Category.INFO)
+            val runButton = MenuButton(
+                MenuButton.View.Text.ConstantText("Run"),
+                MenuButton.Action.Simple {
+                    printLine("RUNNING PROGRAM", OutputLine.Category.INFO)
                     program.run()
-                    print("FINISHED RUNNING", OutputLine.Category.INFO)
+                    printLine("FINISHED RUNNING", OutputLine.Category.INFO)
+                    printEmptyLine()
                     if (viewModeIndex == 0) viewModeIndex = preferredDual
 //                    val main = executionStack.pop().returnedValue as Function
 //                    main.call(emptyList())
                 }
+            )
 
-            val clearOutput: Leaf =
-                Leaf(View.Text.ConstantNameMaybeEnabled("Clear Output", ::hasOutput), ::clearOutput)
+            val clearOutputButton = MenuButton(
+                MenuButton.View.Text.ConstantTextMaybeEnabled("Clear Output", ::hasOutput),
+                MenuButton.Action.Simple(::clearOutput)
+            )
 
-            val changeViewMode =
-                Leaf(View.Text.VariableNameAlwaysEnabled { "View Mode ${viewMode.title}" }, ::nextViewMode)
+            val changeViewModeButton = MenuButton(
+                MenuButton.View.Text.VariableText { "View Mode ${viewMode.title}" },
+                MenuButton.Action.Simple(::nextViewMode)
+            )
 
-            val menuStack = mutableStateListOf<Node>()
+            val menuStack = mutableStateListOf<MenuButton.Action.HasChildren>()
 
-            override val menu: Node
-                get() = menuStack.lastOrNull() ?: root
+            override val menu: MenuButton.Action.HasChildren
+                get() = menuStack.lastOrNull() ?: rootButton.action as MenuButton.Action.HasChildren
 
-            override fun goToMenu(menu: Node, keepStack: Boolean) {
+            override fun goToMenu(menu: MenuButton.Action.HasChildren, keepStack: Boolean) {
                 if (!keepStack) menuStack.clear()
                 menuStack.add(menu)
             }
@@ -106,111 +119,129 @@ fun main() = application {
             override fun canGoBack(): Boolean =
                 menuStack.size > 0
 
-            val clearSelection =
-                Leaf(View.Text.ConstantNameMaybeEnabled("Clear Selection", thereIsSelection)) {
+            val clearSelection = MenuButton(
+                MenuButton.View.Text.ConstantTextMaybeEnabled("Clear Selection", thereIsSelection),
+                MenuButton.Action.Simple {
                     selectedStatement = null
                     menuStack.clear()
-                }
+                })
 
-            val runSelected =
-                Leaf(View.Text.ConstantNameMaybeEnabled("Run Selected", thereIsSelection)) {
+            val runSelected = MenuButton(
+                MenuButton.View.Text.ConstantTextMaybeEnabled("Run Selected", thereIsSelection),
+                MenuButton.Action.Simple {
+                    printLine("RUNNING SELECTED STATEMENT", OutputLine.Category.INFO)
                     selectedStatement?.run()
-                }
-
-            val deleteSelected =
-                Leaf(View.Text.ConstantNameMaybeEnabled("Delete", thereIsSelection)) {
-                    selectedStatement?.run()
-                }
+                    printLine("FINISHED RUNNING", OutputLine.Category.INFO)
+                    printEmptyLine()
+                    if (viewModeIndex == 0) viewModeIndex = preferredDual
+                })
 
             override fun select(statement: Statement, keepStack: Boolean) {
                 selectedStatement = statement
-                goToMenu(statementMenu(statement), keepStack)
+                goToMenu(statementMenu(statement, "").action as MenuButton.Action.HasChildren, keepStack)
             }
 
-            val root =
-                Node(
-                    View.Text.ConstantNameAlwaysEnabled(""), listOf(
-                        changeViewMode,
-                        run,
-                        clearOutput,
+            val rootButton = MenuButton(
+                MenuButton.View.Text.ConstantText(""),
+                MenuButton.Action.HasChildren(
+                    listOf(
+                        changeViewModeButton,
+                        runButton,
+                        clearOutputButton,
                     )
                 )
+            )
 
             fun expressionMenuButton(it: KMutableProperty<Expression?>): MenuButton = TODO()
             fun variableMenuButton(it: KMutableProperty<Variable?>): MenuButton = TODO()
             fun blockMenuButton(it: KMutableProperty<Block?>): MenuButton = TODO()
 
-            fun statementMenu(it: Statement?): Node = Node(View.Text.ConstantNameAlwaysEnabled(""),
-                mutableListOf<MenuButton>().apply {
-                    add(runSelected)
-                    add(deleteSelected)
-                    when (it) {
+            fun statementMenu(statement: Statement?, text: String): MenuButton {
+                val onClick = {
+                    if (statement == null) {
 
-                        is Assertion -> {
-                            add(expressionMenuButton(it::expression))
-                        }
-
-                        is Assignment -> {
-                            add(variableMenuButton(it::variable))
-                            add(expressionMenuButton(it::expression))
-                        }
-
-                        is Block -> {
-                            // TODO
-                        }
-
-                        is If -> {
-                            // add(expressionMenuButton(it::condition))
-                            add(statementMenu(it.ifTrue))
-                            add(statementMenu(it.ifFalse))
-                        }
-
-                        is For -> {
-                            add(variableMenuButton(it::variable))
-                            // TODO add(it::start)
-                            // TODO add(it::end)
-                            add(statementMenu(it.block))
-                        }
-
-                        is Repeat -> {
-                            add(expressionMenuButton(it::times))
-                            add(statementMenu(it.block))
-                        }
-
-                        is While -> {
-                            add(expressionMenuButton(it::condition))
-                            add(statementMenu(it.block))
-                        }
-
-                        is NameDeclaration -> {
-                            // TODO add(it::rebindable)
-                            add(variableMenuButton(it::variable))
-                            add(expressionMenuButton(it::initializer))
-                        }
-
-                        is OneCall -> {
-                            // TODO
-                        }
-
-                        is Return -> {
-                            add(expressionMenuButton(it::expression))
-                        }
-
-                        null -> {
-                        }
+                    } else {
+                        select(statement, true)
                     }
                 }
-            )
+                return MenuButton(
+                    MenuButton.View.Text.ConstantText(text),
+                    MenuButton.Action.HasChildren(
+                        onClick = onClick,
+                        onReTop = onClick,
+                        children = mutableListOf<MenuButton>().apply {
+                            add(runSelected)
+                            //add(deleteSelected)
+                            when (statement) {
+
+                                is Assertion -> {
+                                    add(expressionMenuButton(statement::expression))
+                                }
+
+                                is Assignment -> {
+                                    add(variableMenuButton(statement::variable))
+                                    add(expressionMenuButton(statement::expression))
+                                }
+
+                                is Block -> {
+                                    // TODO
+                                }
+
+                                is If -> {
+                                    // add(expressionMenuButton(it::condition))
+                                    add(statementMenu(statement.ifTrue, "Then-clause"))
+                                    add(statementMenu(statement.ifFalse, "Else-clause"))
+                                }
+
+                                is For -> {
+                                    add(variableMenuButton(statement::variable))
+                                    // TODO add(it::start)
+                                    // TODO add(it::end)
+                                    add(statementMenu(statement.block, "Loop body"))
+                                }
+
+                                is Repeat -> {
+                                    add(expressionMenuButton(statement::times))
+                                    add(statementMenu(statement.block, "Loop body"))
+                                }
+
+                                is While -> {
+                                    add(expressionMenuButton(statement::condition))
+                                    add(statementMenu(statement.block, "Loop body"))
+                                }
+
+                                is NameDeclaration -> {
+                                    // TODO add(it::rebindable)
+                                    add(variableMenuButton(statement::variable))
+                                    add(expressionMenuButton(statement::initializer))
+                                }
+
+                                is OneCall -> {
+                                    // TODO
+                                }
+
+                                is Return -> {
+                                    add(expressionMenuButton(statement::expression))
+                                }
+
+                                null -> {
+                                }
+                            }
+                        }
+                    )
+                )
+            }
         }
     }
 
-    app.print("IMP STARTED", OutputLine.Category.INFO)
+    app.printLine("IMP STARTED", OutputLine.Category.INFO)
+    app.printEmptyLine()
 
     Window(onCloseRequest = ::exitApplication) {
         MaterialTheme {
             @Composable
             fun code() {
-                showStatement(program, false, app)
+                showStatement(app.program, false, app)
             }
 
             @Composable

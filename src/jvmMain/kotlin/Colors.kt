@@ -18,13 +18,11 @@ internal object Colors {
 
     internal object Statement {
         internal object Border {
-            val isNotSelected_isBlock =
-                Color(0.95F, 0.95F, 0.95F)
             val isSelected =
                 Color(0.60F, 0.80F, 0.95F)
-            val isParentSelected =
-                Color(0.80F, 0.90F, 0.95F)
-            val isNotSelected_isNotBlock =
+            val isBlock =
+                divider
+            val isNeither =
                 Color.White
         }
 

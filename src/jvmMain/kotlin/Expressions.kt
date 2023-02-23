@@ -1,4 +1,5 @@
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +32,7 @@ fun showKeyword(text: String) =
     showCode(text, color = Colors.Code.keywords, bold = true)
 
 @Composable
-fun showExpression(expression: Expression?) {
+fun showExpression(expression: Expression?, app: App) {
     Box(
         Modifier
 //            .border(1.dp, Color.LightGray)
@@ -41,9 +42,9 @@ fun showExpression(expression: Expression?) {
             is Call -> Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                showExpression(expression.callable)
+                showExpression(expression.callable, app)
                 showKeyword("(")
-                expression.arguments.forEach { showExpression(it) }
+                expression.arguments.forEach { showExpression(it, app) }
                 showKeyword(")")
             }
 
@@ -58,6 +59,26 @@ fun showExpression(expression: Expression?) {
 
             is DoubleValue ->
                 showCode(expression.value.toString(), color = Colors.Code.numberLiterals)
+
+            is FunctionDefinition -> Column {
+                Row {
+                    showKeyword("(")
+                    var notFirst = false
+                    expression.arguments.forEach {
+                        if (notFirst) showKeyword(", ") else notFirst = true
+                        showExpression(it, app)
+                    }
+                    showKeyword(") -> {")
+                }
+                showStatement(expression.body, true, app)
+                showKeyword("}")
+            }
+
+            is Addition -> Row {
+                showExpression(expression.a, app)
+                showKeyword("+")
+                showExpression(expression.b, app)
+            }
 
             null ->
                 showCode("TODO", color = Color.Blue, italic = true)

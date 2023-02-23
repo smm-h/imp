@@ -1,6 +1,16 @@
-sealed class MenuButton(val view: View) {
-    class Node(view: View, val children: List<MenuButton>) : MenuButton(view)
-    class Leaf(view: View, val action: () -> Unit) : MenuButton(view)
+data class MenuButton(val view: View, val action: Action) {
+
+    sealed class Action {
+        class Simple(
+            val onClick: () -> Unit,
+        ) : Action()
+
+        class HasChildren(
+            val children: List<MenuButton>,
+            val onReTop: (() -> Unit)? = null,
+            val onClick: (() -> Unit)? = null,
+        ) : Action()
+    }
 
     sealed class View {
         abstract val enabled: Boolean
@@ -8,32 +18,24 @@ sealed class MenuButton(val view: View) {
         sealed class Text : View() {
             abstract val text: String
 
-            class ConstantNameAlwaysEnabled(
+            class ConstantText(
                 override val text: String,
             ) : Text() {
                 override val enabled: Boolean get() = true
             }
 
-            class ConstantNameMaybeEnabled(
+            class ConstantTextMaybeEnabled(
                 override val text: String,
                 val enabledLambda: () -> Boolean,
             ) : Text() {
                 override val enabled: Boolean get() = enabledLambda()
             }
 
-            class VariableNameAlwaysEnabled(
+            class VariableText(
                 val textLambda: () -> String,
             ) : Text() {
                 override val text: String get() = textLambda()
                 override val enabled: Boolean get() = true
-            }
-
-            class VariableNameMaybeEnabled(
-                val textLambda: () -> String,
-                val enabledLambda: () -> Boolean,
-            ) : Text() {
-                override val text: String get() = textLambda()
-                override val enabled: Boolean get() = enabledLambda()
             }
         }
     }
